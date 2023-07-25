@@ -75,6 +75,43 @@ def computeRGBToGreyscale(pixel_array_r, pixel_array_g, pixel_array_b, image_wid
     
     return greyscale_pixel_array
 
+#Function that Scales each pixel to 0 and 255
+def scaleTo0And255AndQuantize(pixel_array, image_width, image_height):
+    
+    image = createInitializedGreyscalePixelArray(image_width, image_height, 0)
+    
+    sout = 0
+    flow = 255
+    fhigh = 0
+    
+    for x in range(image_height):
+        for y in range(image_width):
+            #Getting lowest and highest value in pixel array
+            if pixel_array[x][y] < flow:
+                flow = pixel_array[x][y]
+            elif pixel_array[x][y] > fhigh:
+                fhigh = pixel_array[x][y]
+                
+    #Difference between biggest and smallest value in pixel array
+    bottom = fhigh - flow
+    
+    for i in range(image_height):
+        for j in range(image_width):
+            if bottom == 0:
+                image[i][j] = 0
+                continue
+            else:
+                sout = round((pixel_array[i][j] - flow) * (255 / bottom))
+            
+            if sout < 0:
+                image[i][j] = 0
+            elif sout > 255:
+                image[i][j] = 255
+            else:
+                image[i][j] = sout
+    
+    return image
+
 
 def main():
 
@@ -107,7 +144,10 @@ def main():
     px_array = seperateArraysToRGB(px_array_r, px_array_g, px_array_b, image_width, image_height)
 
     #Turns the RGB Image to Greyscale
-    grey_array = computeRGBToGreyscale(px_array_r, px_array_g, px_array_b, image_width, image_height)   
+    grey_array = computeRGBToGreyscale(px_array_r, px_array_g, px_array_b, image_width, image_height) 
+
+    #Scales the Image to pixel values of 0 and 255
+    normal_px_array = scaleTo0And255AndQuantize(grey_array, image_width, image_height)  
 
     # Compute a dummy bounding box centered in the middle of the input image, and with as size of half of width and height
     # Change these values based on the detected barcode region from your algorithm
