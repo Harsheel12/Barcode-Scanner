@@ -52,6 +52,17 @@ def createInitializedGreyscalePixelArray(image_width, image_height, initValue = 
     new_array = [[initValue for x in range(image_width)] for y in range(image_height)]
     return new_array
 
+#Function that takes the 3 seperate arrays and combines them to form a RGB array
+def seperateArraysToRGB( px_array_r, px_array_g, px_array_b, image_width, image_height):
+    new_array = [[[0 for c in range(3)] for x in range(image_width)] for y in range(image_height)]
+
+    for y in range(image_height):
+        for x in range(image_width):
+            new_array[y][x][0] = px_array_r[y][x]
+            new_array[y][x][1] = px_array_g[y][x]
+            new_array[y][x][2] = px_array_b[y][x]
+
+    return new_array
 
 def main():
 
@@ -60,7 +71,7 @@ def main():
     SHOW_DEBUG_FIGURES = True
 
     # This is the default input image filename
-    filename = "Barcode2"
+    filename = "Barcode1"
     input_filename = "images/"+filename+".png"
 
     if command_line_arguments != []:
@@ -80,16 +91,8 @@ def main():
     # each pixel array contains 8 bit integer values between 0 and 255 encoding the color values
     (image_width, image_height, px_array_r, px_array_g, px_array_b) = readRGBImageToSeparatePixelArrays(input_filename)
 
-    # Setup the plots for intermediate results in a figure
-    fig1, axs1 = pyplot.subplots(2, 2)
-    axs1[0, 0].set_title('Input red channel of image')
-    axs1[0, 0].imshow(px_array_r, cmap='gray')
-    axs1[0, 1].set_title('Input green channel of image')
-    axs1[0, 1].imshow(px_array_g, cmap='gray')
-    axs1[1, 0].set_title('Input blue channel of image')
-    axs1[1, 0].imshow(px_array_b, cmap='gray')
-
-    px_array = px_array_r
+    #Takes the original seperate arrays and combines it into an RGB array
+    px_array = seperateArraysToRGB(px_array_r, px_array_g, px_array_b, image_width, image_height)   
 
     # Compute a dummy bounding box centered in the middle of the input image, and with as size of half of width and height
     # Change these values based on the detected barcode region from your algorithm
