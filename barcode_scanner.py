@@ -112,6 +112,49 @@ def scaleTo0And255AndQuantize(pixel_array, image_width, image_height):
     
     return image
 
+#Helper Function that calculates the mean of a 5x5 kernal around the pixel
+def meanOf5x5(pixel_array, image_width, image_height, i, j):
+    
+    total = 0
+
+    for x in range(-2, 3):
+        for y in range(-2, 3):
+            total += pixel_array[i + x][j + y] 
+
+    mean = total / 25
+
+    return mean
+
+#Helper Function that calculates the variance of a 5x5 kernal around the pixel
+def varianceOf5x5(pixel_array, image_width, image_height, i, j, mean):
+
+    total = 0
+
+    for x in range(-2, 3):
+        for y in range(-2, 3):
+            total += pow(pixel_array[i + x][j + y] - mean, 2)
+
+    variance = total / 25
+
+    return variance
+
+#Function that computes the standard deviation
+def computeStandardDeviationImage5x5(pixel_array, image_width, image_height):
+
+    image = createInitializedGreyscalePixelArray(image_width, image_height, 0.0)
+
+    for i in range (2, image_height-2):
+        for j in range (2, image_width-2):
+            mean = meanOf5x5(pixel_array, image_width, image_height, i, j)
+
+            variance = varianceOf5x5(pixel_array, image_width, image_height, i, j, mean)
+
+            standardDeviation = math.sqrt(variance)
+
+            image[i][j] = standardDeviation
+
+    return image
+
 
 def main():
 
@@ -149,6 +192,9 @@ def main():
     #Scales the Image to pixel values of 0 and 255
     normal_px_array = scaleTo0And255AndQuantize(grey_array, image_width, image_height)  
 
+    #Applies a 5x5 Standard Deviation Filter
+    standard_px_array = computeStandardDeviationImage5x5(normal_px_array, image_width, image_height)
+    
     # Compute a dummy bounding box centered in the middle of the input image, and with as size of half of width and height
     # Change these values based on the detected barcode region from your algorithm
     center_x = image_width / 2.0
