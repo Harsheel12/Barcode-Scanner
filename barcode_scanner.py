@@ -231,6 +231,48 @@ def ThresholdImage(pixel_array, image_width, image_height, threshold):
     
     return image
 
+#Helper Function that adds a zero border 
+def ZeroBorder(original, new, image_width, image_height):
+    for row in range(image_height):
+        for col in range(image_width): 
+            new[row + 1][col + 1] = original[row][col]
+            
+    return new
+
+# Helper Function that scans a 5x5 area around current Pixel
+def CheckErosion(pixel_array, i, j):
+    
+    values = []
+    
+    #Scans a 5x5 area around current Pixel
+    for x in range(-2, 3):
+        for y in range(-2, 3):
+            currentValue = pixel_array[(i + x) + 1][(j + y) + 1]
+            
+            values.append(currentValue)
+    
+    
+    if 0 in values:
+        return 0
+    else: 
+        return 1
+
+def computeErosion8Nbh5x5FlatSE(pixel_array, image_width, image_height):
+    
+    #Temporary array with the extra border
+    temp = createInitializedGreyscalePixelArray(image_width+2, image_height+2)
+    
+    #Original array with border
+    arrayWithBorder = ZeroBorder(pixel_array, temp, image_width, image_height)
+    
+    image = createInitializedGreyscalePixelArray(image_width, image_height)
+    
+    for i in range(1, image_height-1):
+        for j in range(1, image_width-1):
+            image[i][j] = CheckErosion(arrayWithBorder, i, j)
+    
+    return image
+
 def main():
 
     command_line_arguments = sys.argv[1:]
@@ -278,6 +320,10 @@ def main():
 
     #Applies a Threshold to the Image
     threshold_px_array = ThresholdImage( guassian4_px_array, image_width, image_height, 25)
+
+    #Applies Erosion to the Image
+    eroded_1px_array = computeErosion8Nbh5x5FlatSE(threshold_px_array, image_width, image_height)
+    eroded_2px_array = computeErosion8Nbh5x5FlatSE(eroded_1px_array, image_width, image_height)
     
     # Compute a dummy bounding box centered in the middle of the input image, and with as size of half of width and height
     # Change these values based on the detected barcode region from your algorithm
