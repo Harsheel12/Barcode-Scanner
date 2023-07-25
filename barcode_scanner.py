@@ -64,6 +64,18 @@ def seperateArraysToRGB( px_array_r, px_array_g, px_array_b, image_width, image_
 
     return new_array
 
+#Function that takes a RGB image and converts it to GreyScale
+def computeRGBToGreyscale(pixel_array_r, pixel_array_g, pixel_array_b, image_width, image_height):
+    
+    greyscale_pixel_array = createInitializedGreyscalePixelArray(image_width, image_height, 0)
+    
+    for y in range(image_height):
+        for x in range(image_width):
+            greyscale_pixel_array[y][x] = round((0.299 * pixel_array_r[y][x]) + (0.587 * pixel_array_g[y][x]) + (0.114 * pixel_array_b[y][x]))
+    
+    return greyscale_pixel_array
+
+
 def main():
 
     command_line_arguments = sys.argv[1:]
@@ -92,7 +104,10 @@ def main():
     (image_width, image_height, px_array_r, px_array_g, px_array_b) = readRGBImageToSeparatePixelArrays(input_filename)
 
     #Takes the original seperate arrays and combines it into an RGB array
-    px_array = seperateArraysToRGB(px_array_r, px_array_g, px_array_b, image_width, image_height)   
+    px_array = seperateArraysToRGB(px_array_r, px_array_g, px_array_b, image_width, image_height)
+
+    #Turns the RGB Image to Greyscale
+    grey_array = computeRGBToGreyscale(px_array_r, px_array_g, px_array_b, image_width, image_height)   
 
     # Compute a dummy bounding box centered in the middle of the input image, and with as size of half of width and height
     # Change these values based on the detected barcode region from your algorithm
