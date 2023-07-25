@@ -218,6 +218,18 @@ def computeGaussianAveraging3x3RepeatBorder(pixel_array, image_width, image_heig
     
     return image
 
+def ThresholdImage(pixel_array, image_width, image_height, threshold):
+
+    image = createInitializedGreyscalePixelArray(image_width, image_height)
+
+    for i in range(image_height):
+        for j in range(image_width):
+            if pixel_array[i][j] < threshold:
+                image[i][j] = 0
+            else:
+                image[i][j] = 1
+    
+    return image
 
 def main():
 
@@ -263,6 +275,9 @@ def main():
     guassian2_px_array = computeGaussianAveraging3x3RepeatBorder(guassian1_px_array, image_width, image_height)
     guassian3_px_array = computeGaussianAveraging3x3RepeatBorder(guassian2_px_array, image_width, image_height)
     guassian4_px_array = computeGaussianAveraging3x3RepeatBorder(guassian3_px_array, image_width, image_height)
+
+    #Applies a Threshold to the Image
+    threshold_px_array = ThresholdImage( guassian4_px_array, image_width, image_height, 25)
     
     # Compute a dummy bounding box centered in the middle of the input image, and with as size of half of width and height
     # Change these values based on the detected barcode region from your algorithm
