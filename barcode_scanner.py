@@ -273,6 +273,38 @@ def computeErosion8Nbh5x5FlatSE(pixel_array, image_width, image_height):
     
     return image
 
+#Helper Function that scans a 5x5 area around current Pixel
+def CheckDilation(pixel_array, i, j):
+    
+    currentValue = pixel_array[i][j]
+    
+    #Scans a 5x5 area around current Pixel
+    for x in range(-2, 3):
+        for y in range(-2, 3):
+            currentValue = pixel_array[(i + x) + 1][(j + y) + 1]
+            
+            if currentValue != 0:
+                return 1
+    
+    return 0
+
+def computeDilation8Nbh5x5FlatSE(pixel_array, image_width, image_height):
+    
+    #Temporary array with the extra border
+    temp = createInitializedGreyscalePixelArray(image_width+2, image_height+2)
+    
+    #Original array with border
+    arrayWithBorder = ZeroBorder(pixel_array, temp, image_width, image_height)
+    
+    image = pixel_array
+    
+    for i in range(1, image_height-1):
+        for j in range(1, image_width-1):
+            #Check 5x5 area around every pixel
+            image[i][j] = CheckDilation(arrayWithBorder, i, j)
+    
+    return image
+
 def main():
 
     command_line_arguments = sys.argv[1:]
@@ -324,7 +356,11 @@ def main():
     #Applies Erosion to the Image
     eroded_1px_array = computeErosion8Nbh5x5FlatSE(threshold_px_array, image_width, image_height)
     eroded_2px_array = computeErosion8Nbh5x5FlatSE(eroded_1px_array, image_width, image_height)
-    
+
+    #Applies Dilation to the Image
+    dilated_1px_array = computeDilation8Nbh5x5FlatSE(eroded_2px_array, image_width, image_height)
+    dilated_2px_array = computeDilation8Nbh5x5FlatSE(dilated_1px_array, image_width, image_height)
+
     # Compute a dummy bounding box centered in the middle of the input image, and with as size of half of width and height
     # Change these values based on the detected barcode region from your algorithm
     center_x = image_width / 2.0
