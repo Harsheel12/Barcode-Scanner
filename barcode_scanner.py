@@ -155,6 +155,69 @@ def computeStandardDeviationImage5x5(pixel_array, image_width, image_height):
 
     return image
 
+#Helper Function that creates a Padding around the image
+def RepeatedBorderBoundaryPadding(new, old, image_width, image_height):
+    padded_width = image_width + 2
+    padded_height = image_height + 2
+    
+    for row in range(image_height):
+        for col in range(image_width):
+            new[row + 1][col + 1] = old[row][col]
+    
+    top_row = old[0]
+    bottom_row = old[image_height - 1]
+    left_column = [old[i][0] for i in range(image_height)]
+    right_column = [old[i][image_width - 1] for i in range(image_height)]
+    
+    new[0] = [old[0][0]] + top_row + [old[0][image_width - 1]]
+    new[padded_height - 1] = [old[image_height - 1][0]] + bottom_row + [old[image_height - 1][image_width - 1]]
+    
+    for i in range(image_height):
+        new[i + 1][0] = left_column[i]
+        new[i + 1][padded_width - 1] = right_column[i]
+    
+    return new
+
+#Helper Function that calculates the Gaussian Value   
+def GaussianValue(MWT):
+    Gauss = [[1/16, 1/8, 1/16], 
+            [1/8,1/4,1/8], 
+            [1/16, 1/8, 1/16]]
+    
+    count = 0
+    for i in range(3):
+        for j in range(3):
+            count = count + MWT[i][j] * Gauss[i][j]
+    
+    return (count)
+
+
+#Function that does the Gaussian Filter
+def computeGaussianAveraging3x3RepeatBorder(pixel_array, image_width, image_height):
+    
+    k = 1
+    l = 1
+    
+    image = createInitializedGreyscalePixelArray(image_width, image_height)
+    temp = createInitializedGreyscalePixelArray(image_width + 2*k, image_height + 2*l)
+    #Array with repeated borders
+    padded = (RepeatedBorderBoundaryPadding(temp, pixel_array, image_width, image_height))
+    
+    for row in range(1, image_height+1):
+        for col in range(1, image_width+1):
+            Kernal3x3 = []
+            
+            for i in range(row - 1, row + 2):
+                tempList = []
+                for j in range(col -1, col+2):
+                    tempList.append(padded[i][j])
+                
+                Kernal3x3.append(tempList)
+
+            image[row - 1][col - 1] = (GaussianValue(Kernal3x3))
+    
+    return image
+
 
 def main():
 
@@ -194,6 +257,12 @@ def main():
 
     #Applies a 5x5 Standard Deviation Filter
     standard_px_array = computeStandardDeviationImage5x5(normal_px_array, image_width, image_height)
+
+    #Applies a 3x3 Guassian Filter 4 Times
+    guassian1_px_array = computeGaussianAveraging3x3RepeatBorder(standard_px_array, image_width, image_height)
+    guassian2_px_array = computeGaussianAveraging3x3RepeatBorder(guassian1_px_array, image_width, image_height)
+    guassian3_px_array = computeGaussianAveraging3x3RepeatBorder(guassian2_px_array, image_width, image_height)
+    guassian4_px_array = computeGaussianAveraging3x3RepeatBorder(guassian3_px_array, image_width, image_height)
     
     # Compute a dummy bounding box centered in the middle of the input image, and with as size of half of width and height
     # Change these values based on the detected barcode region from your algorithm
