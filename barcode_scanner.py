@@ -305,6 +305,108 @@ def computeDilation8Nbh5x5FlatSE(pixel_array, image_width, image_height):
     
     return image
 
+class Queue:
+    def __init__(self):
+        self.items = []
+
+    def isEmpty(self):
+        return self.items == []
+
+    def enqueue(self, item):
+        self.items.insert(0,item)
+
+    def dequeue(self):
+        return self.items.pop()
+
+    def size(self):
+        return len(self.items)
+
+def ZeroBorder(original, new, image_width, image_height):
+    for row in range(image_height):
+        for col in range(image_width): 
+            new[row + 1][col + 1] = original[row][col]
+            
+    return new
+
+def computeConnectedComponentLabeling(pixel_array, image_width, image_height):
+    
+    #Temporary array with the extra border
+    temp = createInitializedGreyscalePixelArray(image_width + 2, image_height + 2, 0)
+    
+    #Output Image
+    ccimg = createInitializedGreyscalePixelArray(image_width, image_height)
+    
+    #Original Array with 0 Border
+    borderedArray = ZeroBorder(pixel_array, temp, image_width, image_height)
+    
+    currentLabel = 1
+    visited = {}
+    ccsizes = {}
+    
+    for row in range(1, image_height+1):
+        for col in range(1, image_width+1):
+            if borderedArray[row][col] > 0 and (row,col) not in visited:
+                
+                ccsizes[currentLabel] = 1
+                
+                queue = Queue()
+                queue.enqueue([row,col])
+                currentPixel = (row,col)
+                
+                while not queue.isEmpty():
+                    
+                    #First element in queue
+                    current = queue.dequeue()
+                    
+                    #Index of the first elemenet
+                    i = current[0]
+                    j = current[1]
+                    
+                    #Update value in img
+                    ccimg[i - 1][j - 1] = currentLabel
+                    
+                    #Add to the visited dictionary
+                    visited[currentPixel] = True
+                    
+                    #Left Pixel
+                    if(borderedArray[i-1][j] > 0 and (i-1,j) not in visited):
+                        #Add that pixel to the queue, update ccimg count and add to visited
+                        queue.enqueue([i-1,j])
+                        ccsizes[currentLabel] += 1
+                        left = (i-1,j)
+                        visited[left] = True
+                    
+                    #Right Pixel
+                    if(borderedArray[i+1][j] > 0 and (i+1,j) not in visited):
+                        #Add that pixel to the queue, update ccimg count and add to visited
+                        queue.enqueue([i+1,j])
+                        ccsizes[currentLabel] += 1
+                        right = (i+1,j)
+                        visited[right] = True
+                    
+                    #Top Pixel
+                    if(borderedArray[i][j+1] > 0 and (i,j+1) not in visited):
+                        #Add that pixel to the queue, update ccimg count and add to visited
+                        queue.enqueue([i,j+1])
+                        ccsizes[currentLabel] += 1
+                        top = (i,j+1)
+                        visited[top] = True
+                    
+                    #Bottom Pixel
+                    if(borderedArray[i][j-1] > 0 and (i,j-1) not in visited):
+                        #Add that pixel to the queue, update ccimg count and add to visited
+                        queue.enqueue([i,j-1])
+                        ccsizes[currentLabel] += 1
+                        bottom = (i,j-1)
+                        visited[bottom] = True
+                
+                #Increase label for next 
+                currentLabel += 1    
+                
+    
+    return (ccimg, ccsizes)
+
+
 def main():
 
     command_line_arguments = sys.argv[1:]
@@ -360,6 +462,11 @@ def main():
     #Applies Dilation to the Image
     dilated_1px_array = computeDilation8Nbh5x5FlatSE(eroded_2px_array, image_width, image_height)
     dilated_2px_array = computeDilation8Nbh5x5FlatSE(dilated_1px_array, image_width, image_height)
+
+    #Finds the Connected Components of the Image
+    (ccimg, ccsize) = computeConnectedComponentLabeling(dilated_2px_array, image_width, image_height)
+    pyplot.imshow(ccimg, cmap='gray')
+    pyplot.show()
 
     # Compute a dummy bounding box centered in the middle of the input image, and with as size of half of width and height
     # Change these values based on the detected barcode region from your algorithm
