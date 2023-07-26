@@ -434,6 +434,15 @@ def main():
     # each pixel array contains 8 bit integer values between 0 and 255 encoding the color values
     (image_width, image_height, px_array_r, px_array_g, px_array_b) = readRGBImageToSeparatePixelArrays(input_filename)
 
+    # setup the plots for intermediate results in a figure
+    fig1, axs1 = pyplot.subplots(2, 2)
+    axs1[0, 0].set_title('Input red channel of image')
+    axs1[0, 0].imshow(px_array_r, cmap='gray')
+    axs1[0, 1].set_title('Input green channel of image')
+    axs1[0, 1].imshow(px_array_g, cmap='gray')
+    axs1[1, 0].set_title('Input blue channel of image')
+    axs1[1, 0].imshow(px_array_b, cmap='gray')
+
     #Takes the original seperate arrays and combines it into an RGB array
     px_array = seperateArraysToRGB(px_array_r, px_array_g, px_array_b, image_width, image_height)
 
@@ -465,17 +474,47 @@ def main():
 
     #Finds the Connected Components of the Image
     (ccimg, ccsize) = computeConnectedComponentLabeling(dilated_2px_array, image_width, image_height)
-    pyplot.imshow(ccimg, cmap='gray')
-    pyplot.show()
 
+    #Creates a list of keys and values of the Connected Components
+    keyList = list(ccsize.keys())
+    valList = list(ccsize.values())
+
+    #Find biggest value in the list (Biggest component)
+    biggest = 0
+    for x in range(len(valList)):
+        if valList[x] > biggest:
+            biggest = valList[x]
+
+    #Index of the biggest component
+    index = valList.index(biggest)
+
+    #Initial coordinates for the box
+    minX = image_width
+    minY = image_height
+    maxX = 0
+    maxY = 0
+
+    #Getting the 4 corners of the box
+    for i in range(image_height):
+        for j in range(image_width):
+            if ccimg[i][j] == keyList[index]:
+                if i < minY:
+                    minY = i
+                elif j < minX:
+                    minX = j
+                elif i > maxY:
+                    maxY = i
+                elif j > maxX:
+                    maxX = j
+    
     # Compute a dummy bounding box centered in the middle of the input image, and with as size of half of width and height
     # Change these values based on the detected barcode region from your algorithm
     center_x = image_width / 2.0
     center_y = image_height / 2.0
-    bbox_min_x = center_x - image_width / 4.0
-    bbox_max_x = center_x + image_width / 4.0
-    bbox_min_y = center_y - image_height / 4.0
-    bbox_max_y = center_y + image_height / 4.0
+    bbox_min_x = minX
+    bbox_max_x = maxX
+    bbox_min_y = minY
+    bbox_max_y = maxY
 
     # The following code is used to plot the bounding box and generate an output for marking
     # Draw a bounding box as a rectangle into the input image
@@ -485,12 +524,12 @@ def main():
                      edgecolor='g', facecolor='none')
     axs1[1, 1].add_patch(rect)
 
-    # Write the output image into output_filename, using the matplotlib savefig method
+    # write the output image into output_filename, using the matplotlib savefig method
     extent = axs1[1, 1].get_window_extent().transformed(fig1.dpi_scale_trans.inverted())
     pyplot.savefig(output_filename, bbox_inches=extent, dpi=600)
 
     if SHOW_DEBUG_FIGURES:
-        # Plot the current figure
+        # plot the current figure
         pyplot.show()
 
 
