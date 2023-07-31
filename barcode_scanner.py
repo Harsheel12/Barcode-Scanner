@@ -64,6 +64,14 @@ def seperateArraysToRGB( px_array_r, px_array_g, px_array_b, image_width, image_
 
     return new_array
 
+########################## Step 1 Functions #################################################
+#
+# Consists of:
+#   Turning a RGB image to a Greyscale Image
+#   Scaling an image to 0 and 255  
+#   
+#############################################################################################
+
 #Function that takes a RGB image and converts it to GreyScale
 def computeRGBToGreyscale(pixel_array_r, pixel_array_g, pixel_array_b, image_width, image_height):
     
@@ -112,6 +120,15 @@ def scaleTo0And255AndQuantize(pixel_array, image_width, image_height):
     
     return image
 
+########################## Step 2 Functions #################################################
+#
+# Consists of:
+#   Applying a 5x5 Standard Deviation Filter
+#   Calculating the Mean of pixels in a 5x5 Frame
+#   Calculating the Variance of pixels in a 5x5 Frame
+#
+#############################################################################################
+
 #Helper Function that calculates the mean of a 5x5 kernal around the pixel
 def meanOf5x5(pixel_array, image_width, image_height, i, j):
     
@@ -154,6 +171,15 @@ def computeStandardDeviationImage5x5(pixel_array, image_width, image_height):
             image[i][j] = standardDeviation
 
     return image
+
+########################## Step 3 Functions #################################################
+#
+# Consists of:
+#   Applying a 3x3 Guassian Filter
+#   Repeat Border Handling
+#   Calculating the Gausian Value of a 3x3 Kernal
+#
+#############################################################################################
 
 #Helper Function that creates a Padding around the image
 def RepeatedBorderBoundaryPadding(new, old, image_width, image_height):
@@ -218,6 +244,13 @@ def computeGaussianAveraging3x3RepeatBorder(pixel_array, image_width, image_heig
     
     return image
 
+########################## Step 4 Functions #################################################
+#
+# Consists of:
+#   Applying a Threshold
+#
+#############################################################################################
+
 def ThresholdImage(pixel_array, image_width, image_height, threshold):
 
     image = createInitializedGreyscalePixelArray(image_width, image_height)
@@ -230,6 +263,17 @@ def ThresholdImage(pixel_array, image_width, image_height, threshold):
                 image[i][j] = 1
     
     return image
+
+########################## Step 5 Functions #################################################
+#
+# Consists of:
+#   Does a Dilation on the Image
+#   Does an Erosion on the Image
+#   Zero Border Handling
+#   Checks 5x5 Dilation Region
+#   Checks 5x5 Erosion Region
+#
+#############################################################################################
 
 #Helper Function that adds a zero border 
 def ZeroBorder(original, new, image_width, image_height):
@@ -304,6 +348,13 @@ def computeDilation8Nbh5x5FlatSE(pixel_array, image_width, image_height):
             image[i][j] = CheckDilation(arrayWithBorder, i, j)
     
     return image
+
+########################## Step 6 Functions #################################################
+#
+# Consists of:
+#   Connected Components
+#
+#############################################################################################
 
 class Queue:
     def __init__(self):
