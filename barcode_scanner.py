@@ -6,6 +6,9 @@ from matplotlib import pyplot
 from matplotlib.patches import Rectangle
 import imageIO.png
 
+import cv2
+from pyzbar.pyzbar import decode
+
 # Function that reads an RGB color png file and returns width, height, as well as pixel arrays for r,g,b
 def readRGBImageToSeparatePixelArrays(input_filename):
 
@@ -486,13 +489,13 @@ def main():
     (image_width, image_height, px_array_r, px_array_g, px_array_b) = readRGBImageToSeparatePixelArrays(input_filename)
 
     # setup the plots for intermediate results in a figure
-    fig1, axs1 = pyplot.subplots(2, 2)
-    axs1[0, 0].set_title('Input red channel of image')
-    axs1[0, 0].imshow(px_array_r, cmap='gray')
-    axs1[0, 1].set_title('Input green channel of image')
-    axs1[0, 1].imshow(px_array_g, cmap='gray')
-    axs1[1, 0].set_title('Input blue channel of image')
-    axs1[1, 0].imshow(px_array_b, cmap='gray')
+    # fig1, axs1 = pyplot.subplots(2, 2)
+    # axs1[0, 0].set_title('Input red channel of image')
+    # axs1[0, 0].imshow(px_array_r, cmap='gray')
+    # axs1[0, 1].set_title('Input green channel of image')
+    # axs1[0, 1].imshow(px_array_g, cmap='gray')
+    # axs1[1, 0].set_title('Input blue channel of image')
+    # axs1[1, 0].imshow(px_array_b, cmap='gray')
 
     #Takes the original seperate arrays and combines it into an RGB array
     px_array = seperateArraysToRGB(px_array_r, px_array_g, px_array_b, image_width, image_height)
@@ -567,21 +570,43 @@ def main():
     bbox_min_y = minY
     bbox_max_y = maxY
 
+        # This reads the barcode and prints it out to the terminal
+    image = cv2.imread(input_filename)
+    code = decode(image)
+
+    for barcode in code:
+        # (x, y, w, h) = barcode.rect
+        cv2.rectangle(image, (minX, minY), (maxX, maxY), (0, 255, 0), 2)
+
+        #Gets the barcode data and type
+        barcodeData = barcode.data.decode("utf-8")
+        barcodeType = barcode.type
+
+        #Formats the output
+        text = "{} (Type: {})".format(barcodeData, barcodeType)
+        cv2.putText(image, text, (minX, minY-20), cv2.FONT_HERSHEY_SIMPLEX,
+		0.5, (0, 255, 0), 2)
+
+        print("Barcode of Type {} Found: {}".format(barcodeType, barcodeData))
+
+    cv2.imshow("Image", image)
+    cv2.waitKey(0)
+
     # The following code is used to plot the bounding box and generate an output for marking
     # Draw a bounding box as a rectangle into the input image
-    axs1[1, 1].set_title('Final image of detection')
-    axs1[1, 1].imshow(px_array, cmap='gray')
-    rect = Rectangle((bbox_min_x, bbox_min_y), bbox_max_x - bbox_min_x, bbox_max_y - bbox_min_y, linewidth=1,
-                     edgecolor='g', facecolor='none')
-    axs1[1, 1].add_patch(rect)
+    # axs1[1, 1].set_title('Final image of detection')
+    # axs1[1, 1].imshow(px_array, cmap='gray')
+    # rect = Rectangle((bbox_min_x, bbox_min_y), bbox_max_x - bbox_min_x, bbox_max_y - bbox_min_y, linewidth=1,
+    #                  edgecolor='g', facecolor='none')
+    # axs1[1, 1].add_patch(rect)
 
-    # write the output image into output_filename, using the matplotlib savefig method
-    extent = axs1[1, 1].get_window_extent().transformed(fig1.dpi_scale_trans.inverted())
-    pyplot.savefig(output_filename, bbox_inches=extent, dpi=600)
+    # # write the output image into output_filename, using the matplotlib savefig method
+    # extent = axs1[1, 1].get_window_extent().transformed(fig1.dpi_scale_trans.inverted())
+    # pyplot.savefig(output_filename, bbox_inches=extent, dpi=600)
 
-    if SHOW_DEBUG_FIGURES:
-        # plot the current figure
-        pyplot.show()
+    # if SHOW_DEBUG_FIGURES:
+    #     # plot the current figure
+    #     pyplot.show()
 
 
 if __name__ == "__main__":
